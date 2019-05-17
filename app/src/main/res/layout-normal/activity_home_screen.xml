@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fbutton="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center_vertical"
+    android:background="@color/backgroundColor"
+    android:gravity="center_horizontal|center_vertical"
+    android:orientation="vertical"
+    tools:context=".ui.HomeScreen"
+    tools:ignore="ExtraText">
+
+    <TextView
+        android:id="@+id/tV"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/app_name"
+        android:textSize="50sp"
+        android:textColor="@color/fbutton_color_alizarin"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="20dp" />
+
+    <ImageView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:src="@drawable/quizupfinal" />
+
+    <info.hoang8f.widget.FButton
+        android:id="@+id/playGame"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:text="@string/play_game"
+        fbutton:buttonColor="@color/lightGreen" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="40dp"></View>
+
+
+    <info.hoang8f.widget.FButton
+        android:id="@+id/quit"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:text="@string/quit"
+        fbutton:buttonColor="@color/lightGreen" />
+
+
+
+
+</LinearLayout>
