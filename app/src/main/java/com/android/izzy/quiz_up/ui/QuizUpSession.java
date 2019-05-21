@@ -1,21 +1,16 @@
 package com.android.izzy.quiz_up.ui;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.AttributeSet;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.TextView;
 
@@ -23,7 +18,6 @@ import com.android.izzy.quiz_up.R;
 
 import com.android.izzy.quiz_up.db.QuizUpHelper;
 import com.android.izzy.quiz_up.db.QuizUpQuestion;
-import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 
@@ -55,10 +49,25 @@ public class QuizUpSession extends AppCompatActivity {
 
 
 
+
+
+      /*  FragmentManager fragmentManager =getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+
+        QuizUpFragment fragment = new QuizUpFragment();
+
+        fragmentTransaction.add(R.id.fragment, fragment);
+        fragmentTransaction.commit();*/
+
+
+
+
+
         MobileAds.initialize(this, "ca-app-pub-5849721681896789~8683673873");
         mAdView = findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
+
+
 
         //
         questionText = findViewById(R.id.QuizUpQuestion);
@@ -285,8 +294,8 @@ public class QuizUpSession extends AppCompatActivity {
         onPause();
 
 
-        TextView correctText = (TextView) dialogCorrect.findViewById(R.id.correctText);
-        FButton buttonNext = (FButton) dialogCorrect.findViewById(R.id.dialogNext);
+        TextView correctText = dialogCorrect.findViewById(R.id.correctText);
+        FButton buttonNext = dialogCorrect.findViewById(R.id.dialogNext);
 
         //Setting type faces
         correctText.setTypeface(sb);
