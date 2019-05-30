@@ -7,21 +7,30 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
 
 import com.android.izzy.quiz_up.R;
 
-import com.android.izzy.quiz_up.db.QuizUpHelper;
+import com.android.izzy.quiz_up.db.FirebaseUtils;
 import com.android.izzy.quiz_up.db.QuizUpQuestion;
+import com.android.izzy.quiz_up.db.WriteToFb;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,21 +40,27 @@ public class QuizUpSession extends AppCompatActivity {
 
     private AdView mAdView;
 
+
     FButton buttonA, buttonB, buttonC, buttonD;
     TextView questionText, QuizUpText, timeText, resultText, coinText;
-    QuizUpHelper quizUpHelper;
+
     QuizUpQuestion currentQuestion;
-    List<QuizUpQuestion> list;
+    List<QuizUpQuestion> list = new ArrayList<>();
     int qid = 0;
     int timeValue = 20;
     int coinValue = 0;
     CountDownTimer countDownTimer;
     Typeface tb, sb;
+    WriteToFb writeToFb;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quizup_session);
+        writeToFb = new WriteToFb(getApplicationContext());
+
+        writeToFb.addQuizToFb();
+
 
 
 
@@ -61,12 +76,8 @@ public class QuizUpSession extends AppCompatActivity {
         fragmentTransaction.commit();*/
 
 
-
-
-
         MobileAds.initialize(this, "ca-app-pub-5849721681896789~8683673873");
         mAdView = findViewById(R.id.adView);
-
 
 
         //
@@ -94,18 +105,13 @@ public class QuizUpSession extends AppCompatActivity {
         resultText.setTypeface(sb);
         coinText.setTypeface(tb);
 
+        coinText.setText(String.valueOf(coinValue));
 
-        //
-        quizUpHelper = new QuizUpHelper(this);
-            quizUpHelper.getWritableDatabase();
-            if(quizUpHelper.getAllOfTheQuestions().size() == 0) {
-                quizUpHelper.allQuestion();
-            }
 
-            list = quizUpHelper.getAllOfTheQuestions();
+        getAllOfTheQuestions();
+
         Collections.shuffle(list);
-
-        currentQuestion = list.get(qid);
+//        currentQuestion = list.get(qid);
 
         countDownTimer = new CountDownTimer(22000, 1000) {
             @Override
@@ -128,10 +134,9 @@ public class QuizUpSession extends AppCompatActivity {
                 timeUp();
             }
         }.start();
-        updateQueAndOptions();
+
+
     }
-
-
 
 
     public void updateQueAndOptions() {
@@ -151,9 +156,6 @@ public class QuizUpSession extends AppCompatActivity {
         countDownTimer.start();
 
         //set the value of coin text
-        coinText.setText(String.valueOf(coinValue));
-        //Now since user has ans correct increment the coinvalue
-        coinValue++;
 
     }
 
@@ -161,7 +163,7 @@ public class QuizUpSession extends AppCompatActivity {
     public void buttonA(View view) {
         //compare the option with the ans if yes then make button color green
         if (currentQuestion.getOptA().equals(currentQuestion.getAnswer())) {
-            buttonA.setButtonColor(ContextCompat.getColor(getApplicationContext(),R.color.lightGreen));
+            buttonA.setButtonColor(ContextCompat.getColor(getApplicationContext(), R.color.lightGreen));
             //Check if user has not exceeds the que limit
             if (qid < list.size() - 1) {
 
@@ -171,6 +173,7 @@ public class QuizUpSession extends AppCompatActivity {
 
                 //Show the dialog that ans is correct
                 correctDialog();
+
             }
             //If user has exceeds the que limit just navigate him to GameWon activity
             else {
@@ -190,10 +193,11 @@ public class QuizUpSession extends AppCompatActivity {
     //Onclick listener for sec button
     public void buttonB(View view) {
         if (currentQuestion.getOptB().equals(currentQuestion.getAnswer())) {
-            buttonB.setButtonColor(ContextCompat.getColor(getApplicationContext(),R.color.lightGreen));
+            buttonB.setButtonColor(ContextCompat.getColor(getApplicationContext(), R.color.lightGreen));
             if (qid < list.size() - 1) {
                 disableButton();
                 correctDialog();
+
             } else {
                 gameWon();
             }
@@ -205,10 +209,12 @@ public class QuizUpSession extends AppCompatActivity {
     //Onclick listener for third button
     public void buttonC(View view) {
         if (currentQuestion.getOptC().equals(currentQuestion.getAnswer())) {
-            buttonC.setButtonColor(ContextCompat.getColor(getApplicationContext(),R.color.lightGreen));
+            buttonC.setButtonColor(ContextCompat.getColor(getApplicationContext(), R.color.lightGreen));
             if (qid < list.size() - 1) {
                 disableButton();
                 correctDialog();
+
+
             } else {
                 gameWon();
             }
@@ -221,10 +227,11 @@ public class QuizUpSession extends AppCompatActivity {
     //Onclick listener for fourth button
     public void buttonD(View view) {
         if (currentQuestion.getOptD().equals(currentQuestion.getAnswer())) {
-            buttonD.setButtonColor(ContextCompat.getColor(getApplicationContext(),R.color.lightGreen));
+            buttonD.setButtonColor(ContextCompat.getColor(getApplicationContext(), R.color.lightGreen));
             if (qid < list.size() - 1) {
                 disableButton();
                 correctDialog();
+
             } else {
                 gameWon();
             }
@@ -237,6 +244,7 @@ public class QuizUpSession extends AppCompatActivity {
     public void gameWon() {
         Intent intent = new Intent(this, QuizWon.class);
         startActivity(intent);
+
         finish();
     }
 
@@ -280,6 +288,11 @@ public class QuizUpSession extends AppCompatActivity {
 
     //This dialog is show to the user after he ans correct
     public void correctDialog() {
+
+        //Now since user has ans correct increment the coinvalue
+        ++coinValue;
+        coinText.setText(String.valueOf(coinValue));
+
         final Dialog dialogCorrect = new Dialog(QuizUpSession.this);
         dialogCorrect.requestWindowFeature(Window.FEATURE_NO_TITLE);
         if (dialogCorrect.getWindow() != null) {
@@ -323,10 +336,10 @@ public class QuizUpSession extends AppCompatActivity {
 
     //This method will make button color white again since our one button color was turned green
     public void resetColor() {
-        buttonA.setButtonColor(ContextCompat.getColor(getApplicationContext(),R.color.white));
-        buttonB.setButtonColor(ContextCompat.getColor(getApplicationContext(),R.color.white));
-        buttonC.setButtonColor(ContextCompat.getColor(getApplicationContext(),R.color.white));
-        buttonD.setButtonColor(ContextCompat.getColor(getApplicationContext(),R.color.white));
+        buttonA.setButtonColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
+        buttonB.setButtonColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
+        buttonC.setButtonColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
+        buttonD.setButtonColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
     }
 
     //This method will disable all the option button
@@ -343,5 +356,56 @@ public class QuizUpSession extends AppCompatActivity {
         buttonB.setEnabled(true);
         buttonC.setEnabled(true);
         buttonD.setEnabled(true);
+    }
+
+    FirebaseDatabase db = FirebaseUtils.getFirebaseDatabase();
+    DatabaseReference ref = db.getReference().child("quiz");
+
+    public List<QuizUpQuestion> getAllOfTheQuestions() {
+        final List<QuizUpQuestion> questions = new ArrayList<>();
+
+
+
+
+        ref.child("questions").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                Log.d("quiz", dataSnapshot.getValue().toString());
+                QuizUpQuestion quiz = dataSnapshot.getValue(QuizUpQuestion.class);
+                Log.d("quiz",quiz.getQuestion());
+                list.add(quiz);
+
+                /*coinValue++;*/
+                currentQuestion = list.get(qid);
+                Collections.shuffle(list);
+
+                updateQueAndOptions();
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+
+        return questions;
+
     }
 }

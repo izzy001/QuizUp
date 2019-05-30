@@ -1,8 +1,8 @@
 package com.android.izzy.quiz_up.db;
 
-import android.app.Activity;
 
-public class QuizUpQuestion extends Activity {
+
+public class QuizUpQuestion {
 
     private int id;
     private String question;

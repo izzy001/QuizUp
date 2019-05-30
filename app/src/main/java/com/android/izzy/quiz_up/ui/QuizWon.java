@@ -13,6 +13,7 @@ public class QuizWon extends Activity {
     protected void onCreate( Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.quiz_won);
+
     }
 
     //This is onclick listener for button
